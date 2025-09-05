@@ -1,4 +1,4 @@
-version: 1.0.3
+version: 1.0.4
 name: bytebot
 
 services:
@@ -63,12 +63,24 @@ services:
     networks:
       - bytebot-network
     labels:
-      # Basic auth middleware with correct bcrypt hash for rotz/L0steden20
+      # Enable Traefik
+      - "traefik.enable=true"
+      
+      # Define the basic auth middleware
       - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$2y$$05$$BYiEBLWrWV0xXOHObBMJr.mH8A89qk/h.EIvvWXa4j5SRsNImO6pG"
+      
+      # Define service
+      - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
+      
+      # Define router with middleware
+      - "traefik.http.routers.bytebot-ui.rule=Host(`bytebot.rotz.app`)"
+      - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
+      - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
+      - "traefik.http.routers.bytebot-ui.tls.certresolver=letsencrypt"
 
 networks:
   bytebot-network:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data
