@@ -1,4 +1,6 @@
+version: 1.0.1
 name: bytebot
+
 services:
   bytebot-desktop:
     image: ghcr.io/bytebot-ai/bytebot-desktop:edge
@@ -53,15 +55,25 @@ services:
     networks:
       - bytebot-network
       - coolify-network
-    # Expose via Coolify's Traefik (NO basic auth labels here; Coolify will add them)
     labels:
       - "traefik.enable=true"
-      # Replace YOUR_DOMAIN with your real FQDN, e.g. bytebot.rotz.ai
-      - "traefik.http.routers.bytebot-ui.rule=Host(`YOUR_DOMAIN`)"
-      - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
-      - "traefik.http.routers.bytebot-ui.tls=true"
-      - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
+
+      # Router (high priority so it wins over any auto router)
+      - "traefik.http.routers.bytebot-ui-auth.rule=Host(`bytebot.rotz.app`)"
+      - "traefik.http.routers.bytebot-ui-auth.entrypoints=websecure"
+      - "traefik.http.routers.bytebot-ui-auth.tls=true"
+      - "traefik.http.routers.bytebot-ui-auth.priority=1000"
+
+      # Service: point Traefik to the container's internal port
+      - "traefik.http.services.bytebot-ui-svc.loadbalancer.server.port=9992"
+      - "traefik.http.routers.bytebot-ui-auth.service=bytebot-ui-svc"
+
+      # Use Coolify's Traefik network
       - "traefik.docker.network=coolify-network"
+
+      # Basic Auth (username: rotz, password: L0steden20)
+      - "traefik.http.routers.bytebot-ui-auth.middlewares=bytebot-auth"
+      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$apr1$$ykqU5IxB$$tky4ZvtZ2YEvG2NNFddoP1"
 
 networks:
   bytebot-network:
