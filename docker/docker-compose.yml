@@ -61,8 +61,14 @@ services:
       - COOKIE_DOMAIN=rotz.app
       - INSECURE_COOKIE=false
       - LOG_LEVEL=info
+      - URL_PATH=/_oauth
     networks:
       - bytebot-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4181/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     labels:
       # Enable Traefik
       - "traefik.enable=true"
