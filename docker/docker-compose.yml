@@ -7,8 +7,6 @@ services:
     restart: unless-stopped
     hostname: computer
     privileged: true
-    ports:
-      - "9990:9990"
     environment:
       - DISPLAY=:0
     networks:
@@ -18,8 +16,6 @@ services:
     image: postgres:16-alpine
     container_name: bytebot-postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
@@ -33,8 +29,6 @@ services:
     image: ghcr.io/bytebot-ai/bytebot-agent:edge
     container_name: bytebot-agent
     restart: unless-stopped
-    ports:
-      - "9991:9991"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/bytebotdb}
       - BYTEBOT_DESKTOP_BASE_URL=${BYTEBOT_DESKTOP_BASE_URL:-http://bytebot-desktop:9990}
@@ -50,8 +44,6 @@ services:
     image: ghcr.io/bytebot-ai/bytebot-ui:edge
     container_name: bytebot-ui
     restart: unless-stopped
-    ports:
-      - "9992:9992"
     environment:
       - NODE_ENV=production
       - BYTEBOT_AGENT_BASE_URL=${BYTEBOT_AGENT_BASE_URL:-http://bytebot-agent:9991}
@@ -60,12 +52,22 @@ services:
       - bytebot-agent
     networks:
       - bytebot-network
+      - coolify-network
+    # Expose via Coolify's Traefik (NO basic auth labels here; Coolify will add them)
     labels:
-      - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
-      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$apr1$$XQ.18Q2X$$5jU/sE4s/s.sY3v4Yj8c5"
-    
+      - "traefik.enable=true"
+      # Replace YOUR_DOMAIN with your real FQDN, e.g. bytebot.rotz.ai
+      - "traefik.http.routers.bytebot-ui.rule=Host(`YOUR_DOMAIN`)"
+      - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
+      - "traefik.http.routers.bytebot-ui.tls=true"
+      - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
+      - "traefik.docker.network=coolify-network"
+
 networks:
   bytebot-network:
     driver: bridge
+  coolify-network:
+    external: true
+
 volumes:
   postgres_data:
