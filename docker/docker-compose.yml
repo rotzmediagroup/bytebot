@@ -47,6 +47,30 @@ services:
     networks:
       - bytebot-network
 
+  traefik-forward-auth:
+    image: thomseddon/traefik-forward-auth:2
+    container_name: traefik-forward-auth
+    restart: unless-stopped
+    environment:
+      - DEFAULT_PROVIDER=google
+      - PROVIDERS_GOOGLE_CLIENT_ID=1035190682648-p60ao4phea2hbovo087bcao80741u10o.apps.googleusercontent.com
+      - PROVIDERS_GOOGLE_CLIENT_SECRET=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
+      - SECRET=a-random-secret-key-for-oauth-sessions
+      - AUTH_HOST=auth.rotz.app
+      - COOKIE_DOMAIN=rotz.app
+      - WHITELIST=jerome@rotz.host
+      - LOG_LEVEL=info
+    networks:
+      - bytebot-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.rotz.app`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
+      - "traefik.http.services.auth.loadbalancer.server.port=4181"
+      - "traefik.http.middlewares.auth.forwardauth.address=http://traefik-forward-auth:4181"
+      - "traefik.http.middlewares.auth.forwardauth.authResponseHeaders=X-Forwarded-User"
+
   bytebot-ui:
     image: ghcr.io/bytebot-ai/bytebot-ui:edge
     container_name: bytebot-ui
@@ -59,11 +83,16 @@ services:
       - BYTEBOT_DESKTOP_VNC_URL=${BYTEBOT_DESKTOP_VNC_URL:-http://bytebot-desktop:9990/websockify}
     depends_on:
       - bytebot-agent
+      - traefik-forward-auth
     networks:
       - bytebot-network
     labels:
-      - "traefik.http.middlewares.bytebot-auth.basicauth.users=jerome:$$2y$$05$$7Oqied1.m1X6EvvF7FXGiOved7fCM7tLPiIU18YsleQJD6GELhjuW"
-      - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
+      - "traefik.enable=true"
+      - "traefik.http.routers.bytebot-ui.rule=Host(`bytebot.rotz.app`)"
+      - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
+      - "traefik.http.routers.bytebot-ui.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.bytebot-ui.middlewares=auth"
+      - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
 
 networks:
   bytebot-network:
@@ -71,3 +100,4 @@ networks:
 
 volumes:
   postgres_data:
+
