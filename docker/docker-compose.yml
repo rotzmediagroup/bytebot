@@ -1,12 +1,6 @@
 name: bytebot
-
 services:
   bytebot-desktop:
-    # Build from source
-    build:
-      context: ../packages/
-      dockerfile: bytebotd/Dockerfile
-    # Use pre-built image
     image: ghcr.io/bytebot-ai/bytebot-desktop:edge
     shm_size: "2g"
     container_name: bytebot-desktop
@@ -14,7 +8,7 @@ services:
     hostname: computer
     privileged: true
     ports:
-      - "9990:9990" # bytebotd service & noVNC
+      - "9990:9990"
     environment:
       - DISPLAY=:0
     networks:
@@ -36,10 +30,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   bytebot-agent:
-    build:
-      context: ../packages/
-      dockerfile: bytebot-agent/Dockerfile
-    # Use pre-built image
     image: ghcr.io/bytebot-ai/bytebot-agent:edge
     container_name: bytebot-agent
     restart: unless-stopped
@@ -57,13 +47,6 @@ services:
       - bytebot-network
 
   bytebot-ui:
-    build:
-      context: ../packages/
-      dockerfile: bytebot-ui/Dockerfile
-      args:
-        - BYTEBOT_AGENT_BASE_URL=${BYTEBOT_AGENT_BASE_URL:-http://bytebot-agent:9991}
-        - BYTEBOT_DESKTOP_VNC_URL=${BYTEBOT_DESKTOP_VNC_URL:-http://bytebot-desktop:9990/websockify}
-    # Use pre-built image
     image: ghcr.io/bytebot-ai/bytebot-ui:edge
     container_name: bytebot-ui
     restart: unless-stopped
@@ -77,10 +60,12 @@ services:
       - bytebot-agent
     networks:
       - bytebot-network
-
+    labels:
+      - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
+      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$apr1$$XQ.18Q2X$$5jU/sE4s/s.sY3v4Yj8c5"
+    
 networks:
   bytebot-network:
     driver: bridge
-
 volumes:
   postgres_data:
