@@ -1,4 +1,4 @@
-version: 1.0.1
+version: 1.0.2
 name: bytebot
 
 services:
@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     hostname: computer
     privileged: true
+    ports:
+      - "9990:9990"
     environment:
       - DISPLAY=:0
     networks:
@@ -18,6 +20,8 @@ services:
     image: postgres:16-alpine
     container_name: bytebot-postgres
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
@@ -31,6 +35,8 @@ services:
     image: ghcr.io/bytebot-ai/bytebot-agent:edge
     container_name: bytebot-agent
     restart: unless-stopped
+    ports:
+      - "9991:9991"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/bytebotdb}
       - BYTEBOT_DESKTOP_BASE_URL=${BYTEBOT_DESKTOP_BASE_URL:-http://bytebot-desktop:9990}
@@ -46,6 +52,8 @@ services:
     image: ghcr.io/bytebot-ai/bytebot-ui:edge
     container_name: bytebot-ui
     restart: unless-stopped
+    ports:
+      - "9992:9992"
     environment:
       - NODE_ENV=production
       - BYTEBOT_AGENT_BASE_URL=${BYTEBOT_AGENT_BASE_URL:-http://bytebot-agent:9991}
@@ -54,32 +62,27 @@ services:
       - bytebot-agent
     networks:
       - bytebot-network
-      - coolify-network
     labels:
+      # Enable Traefik for this service
       - "traefik.enable=true"
-
-      # Router (high priority so it wins over any auto router)
-      - "traefik.http.routers.bytebot-ui-auth.rule=Host(`bytebot.rotz.app`)"
-      - "traefik.http.routers.bytebot-ui-auth.entrypoints=websecure"
-      - "traefik.http.routers.bytebot-ui-auth.tls=true"
-      - "traefik.http.routers.bytebot-ui-auth.priority=1000"
-
-      # Service: point Traefik to the container's internal port
-      - "traefik.http.services.bytebot-ui-svc.loadbalancer.server.port=9992"
-      - "traefik.http.routers.bytebot-ui-auth.service=bytebot-ui-svc"
-
-      # Use Coolify's Traefik network
-      - "traefik.docker.network=coolify-network"
-
-      # Basic Auth (username: rotz, password: L0steden20)
-      - "traefik.http.routers.bytebot-ui-auth.middlewares=bytebot-auth"
-      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$apr1$$ykqU5IxB$$tky4ZvtZ2YEvG2NNFddoP1"
+      
+      # Define the router
+      - "traefik.http.routers.bytebot-ui.rule=Host(`${COOLIFY_FQDN}`)"
+      - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
+      - "traefik.http.routers.bytebot-ui.tls.certresolver=letsencrypt"
+      
+      # Define the service and port
+      - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
+      
+      # Apply basic auth middleware
+      - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
+      
+      # Define basic auth middleware with correct credentials
+      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$apr1$$35EuGfDk$$SfxgSmwiNrfgody09SPZd/"
 
 networks:
   bytebot-network:
     driver: bridge
-  coolify-network:
-    external: true
 
 volumes:
   postgres_data:
