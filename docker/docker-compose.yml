@@ -62,7 +62,7 @@ services:
     networks:
       - bytebot-network
     labels:
-      - "traefik.http.middlewares.bytebot-auth.basicauth.users=jerome:$$2y$$05$$VLGO3XjXmfZvPgb2DBNioOHmkLS8MYgFDftoKlLDilEy.rfxIDoB."
+      - "traefik.http.middlewares.bytebot-auth.basicauth.users=jerome:$$2y$$05$$7Oqied1.m1X6EvvF7FXGiOved7fCM7tLPiIU18YsleQJD6GELhjuW"
       - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
 
 networks:
