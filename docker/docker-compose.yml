@@ -60,10 +60,12 @@ services:
       - AUTH_HOST=auth.rotz.app
       - COOKIE_DOMAIN=rotz.app
       - INSECURE_COOKIE=false
-      - LOG_LEVEL=info
+      - LOG_LEVEL=debug
       - URL_PATH=/_oauth
       - COOKIE_NAME=_forward_auth
       - CSRF_COOKIE_NAME=_forward_auth_csrf
+      - DEFAULT_ACTION=auth
+      - DEFAULT_PROVIDER=google
     networks:
       - bytebot-network
     healthcheck:
