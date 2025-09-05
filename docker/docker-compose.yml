@@ -1,4 +1,4 @@
-version: 1.0.7
+version: 1.0.8
 name: bytebot
 services:
   bytebot-desktop:
@@ -64,8 +64,8 @@ services:
 
   auth-proxy:
     image: nginx:alpine
-    ports:
-      - '8888:80'
+    expose:
+      - '80'
     environment:
       - BASIC_AUTH_USER=rotz
       - BASIC_AUTH_PASSWORD=L0steden20
