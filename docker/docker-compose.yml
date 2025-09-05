@@ -113,6 +113,7 @@ services:
       # Define router with OAuth middleware
       - "traefik.http.routers.bytebot-ui.rule=Host(`bytebot.rotz.app`)"
       - "traefik.http.routers.bytebot-ui.middlewares=bytebot-oauth"
+      - "traefik.http.routers.bytebot-ui.service=bytebot-ui"
       - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
       - "traefik.http.routers.bytebot-ui.tls.certresolver=letsencrypt"
 
