@@ -63,22 +63,8 @@ services:
     networks:
       - bytebot-network
     labels:
-      # Enable Traefik for this service
-      - "traefik.enable=true"
-      
-      # Define the router
-      - "traefik.http.routers.bytebot-ui.rule=Host(`${COOLIFY_FQDN}`)"
-      - "traefik.http.routers.bytebot-ui.entrypoints=websecure"
-      - "traefik.http.routers.bytebot-ui.tls.certresolver=letsencrypt"
-      
-      # Define the service and port
-      - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
-      
-      # Apply basic auth middleware
-      - "traefik.http.routers.bytebot-ui.middlewares=bytebot-auth"
-      
-      # Define basic auth middleware with correct credentials
-      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$apr1$$35EuGfDk$$SfxgSmwiNrfgody09SPZd/"
+      # Basic auth middleware with correct bcrypt hash for rotz/L0steden20
+      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$2y$$05$$BYiEBLWrWV0xXOHObBMJr.mH8A89qk/h.EIvvWXa4j5SRsNImO6pG"
 
 networks:
   bytebot-network:
