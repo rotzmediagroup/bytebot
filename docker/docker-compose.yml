@@ -67,8 +67,8 @@ services:
     ports:
       - "8888:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./htpasswd:/etc/nginx/htpasswd:ro
+      - /home/ubuntu/bytebot/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home/ubuntu/bytebot/docker/htpasswd:/etc/nginx/htpasswd:ro
     depends_on:
       - bytebot-ui
     networks:
