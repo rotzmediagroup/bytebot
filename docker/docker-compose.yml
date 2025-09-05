@@ -67,7 +67,7 @@ services:
       - "traefik.enable=true"
       
       # Define the basic auth middleware
-      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$2y$$05$$BYiEBLWrWV0xXOHObBMJr.mH8A89qk/h.EIvvWXa4j5SRsNImO6pG"
+      - "traefik.http.middlewares.bytebot-auth.basicauth.users=rotz:$$2y$$05$$lTdxnrSBYgXle/kffMQxvOIibsDTQvtN6XQypwb0h73fKxlI38eti"
       
       # Define service
       - "traefik.http.services.bytebot-ui.loadbalancer.server.port=9992"
